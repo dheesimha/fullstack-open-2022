@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Contact from "./components/Contact";
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -73,14 +74,16 @@ const App = () => {
       <h2>Phonebook</h2>
       <div>
         filter shown with
-        <input type="text" value={search} onChange={handleSearch} />
+        <Contact value={search} onChange={handleSearch} />
       </div>
 
       <h2>Add a new</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          name: <input value={newName} onChange={handleChange} />
-          number : <input value={number} onChange={numberChange} />
+          name:
+          <Contact value={newName} onChange={handleChange} />
+          number:
+          <Contact value={number} onChange={numberChange} />
         </div>
         <div>
           <button type="submit">add</button>
