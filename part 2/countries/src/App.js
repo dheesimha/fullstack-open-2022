@@ -6,7 +6,31 @@ function Individual({ countryObj, name }) {
   let req = countryObj.filter(
     (country) => country.name.toLowerCase() === name.toLowerCase()
   );
-  console.log(req);
+
+  // console.log(req);
+  let weatherData;
+
+  let lat = req[0].latlng[0];
+  let lon = req[0].latlng[1];
+
+  const [weather, setWeather] = useState({});
+
+  let getWeather = () => {
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.REACT_APP_APPID}`
+      )
+      .then((response) => {
+        weatherData = response.data;
+        setWeather({
+          temp: weatherData.main.temp,
+          icon: weatherData.weather[0].icon,
+          wind: weatherData.wind.speed,
+        });
+      });
+  };
+
+  useEffect(getWeather, [lat, lon, weather]);
   return (
     <div>
       <h1>{req[0].name}</h1>
@@ -18,6 +42,15 @@ function Individual({ countryObj, name }) {
       })}
 
       <img src={req[0].flag} alt={req[0].name} width="200px" height="150px" />
+
+      <br />
+      <h1>Weather in {req[0].capital}</h1>
+      <p>temperatue is {weather.temp} degree Celcius</p>
+      <img
+        src={`http://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+        alt="weather icon"
+      />
+      <p>Wind {weather.wind} m/s</p>
     </div>
   );
 }
