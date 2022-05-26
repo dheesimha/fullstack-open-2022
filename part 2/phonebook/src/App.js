@@ -3,18 +3,60 @@ import { useState, useEffect } from "react";
 import Contact from "./components/Contact";
 import phone from "./services/phone";
 
+let SuccessComponent = ({ message }) => {
+  let addSuccess = {
+    color: "green",
+    background: "lightgrey",
+    fontsize: "20px",
+    borderStyle: "solid",
+    borderRadius: "5px",
+    padding: "10px",
+    marginBottom: "10px",
+  };
+  if (message === null) return;
+  return (
+    <div style={addSuccess}>{message} has been added to the phonebook</div>
+  );
+};
+
+let DeleteComponent = ({ message }) => {
+  let addDelete = {
+    color: "red",
+    background: "lightgrey",
+    fontsize: "20px",
+    borderStyle: "solid",
+    borderRadius: "5px",
+    padding: "10px",
+    marginBottom: "10px",
+  };
+  if (message === null) return;
+  return (
+    <div style={addDelete}>
+      {message} has been already removed from the server
+    </div>
+  );
+};
+
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [number, setNumber] = useState("");
   const [search, setSearch] = useState("");
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [delMsg, setDelMsg] = useState(null);
 
   let deleteContact = (id, name) => {
     let val = window.confirm("Delete " + name);
     if (val) {
       return axios
         .delete(`http://localhost:3001/persons/${id}`)
-        .then(setPersons(persons.filter((person) => person.id !== id)));
+        .then(setPersons(persons.filter((person) => person.id !== id)))
+        .catch((err) => {
+          setDelMsg(name);
+          setTimeout(() => {
+            setDelMsg(null);
+          }, 4000);
+        });
     }
   };
   useEffect(() => {
@@ -55,7 +97,13 @@ const App = () => {
                   person.id !== updateId ? person : response.data
                 )
               );
-            });
+            })
+            .then(
+              setSuccessMsg(obj.name),
+              setTimeout(() => {
+                setSuccessMsg(null);
+              }, 2000)
+            );
 
           update = false;
         }
@@ -69,6 +117,10 @@ const App = () => {
       setPersons(persons.concat(obj));
       setNewName("");
       setNumber("");
+      setSuccessMsg(obj.name);
+      setTimeout(() => {
+        setSuccessMsg(null);
+      }, 2000);
     } else {
       setNewName("");
       setNumber("");
@@ -77,7 +129,6 @@ const App = () => {
 
   const showVals = () => {
     if (search === "") {
-      // console.log(persons);
       return persons.map((person, index) => {
         return (
           <li key={index}>
@@ -109,11 +160,12 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <SuccessComponent message={successMsg} />
+      <DeleteComponent message={delMsg} />
       <div>
         filter shown with
         <Contact value={search} onChange={handleSearch} />
       </div>
-
       <h2>Add a new</h2>
       <form onSubmit={handleSubmit}>
         <div>
