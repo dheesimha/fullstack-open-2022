@@ -49,7 +49,7 @@ const App = () => {
     let val = window.confirm("Delete " + name);
     if (val) {
       return axios
-        .delete(`http://localhost:3001/persons/${id}`)
+        .delete(`https://dhee-fs-backend.herokuapp.com/api/persons/${id}`)
         .then(setPersons(persons.filter((person) => person.id !== id)))
         .catch((err) => {
           setDelMsg(name);
@@ -90,7 +90,7 @@ const App = () => {
 
         if (update === true && duplicate) {
           axios
-            .put(`http://localhost:3001/persons/${updateId}`, obj)
+            .put(`https://dhee-fs-backend.herokuapp.com/api/persons/${updateId}`, obj)
             .then((response) => {
               setPersons(
                 persons.map((person) =>
