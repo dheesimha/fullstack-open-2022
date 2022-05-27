@@ -5,6 +5,7 @@ const cors = require("cors")
 
 app.use(express.json())
 app.use(cors())
+app.use(express.static('build'))
 
 
 morgan.token('body', (req, res) => JSON.stringify(req.body))
@@ -51,7 +52,13 @@ let genId = () => {
 }
 
 
-const port = 3001 || process.env.PORT
+
+
+app.get("/", (req, res) => {
+    res.send('hey')
+})
+
+
 app.get("/api/persons", (req, res) => {
     res.send(notes)
 
@@ -59,7 +66,7 @@ app.get("/api/persons", (req, res) => {
 })
 
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id ', (req, res) => {
     let id = Number(req.params.id)
 
     let person = notes.filter(note => note.id === id)
@@ -74,7 +81,7 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 
-app.delete('/api/personbs/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res) => {
     let id = Number(req.params.id)
 
     let person = notes.filter(note => note.id !== id)
@@ -118,6 +125,6 @@ app.get('/info', (req, res) => {
 
 })
 
-app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server started on port`);
 })
