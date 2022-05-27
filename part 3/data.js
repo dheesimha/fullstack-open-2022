@@ -1,8 +1,10 @@
 const express = require("express")
 const app = express()
 const morgan = require("morgan")
+const cors = require("cors")
 
 app.use(express.json())
+app.use(cors())
 
 
 morgan.token('body', (req, res) => JSON.stringify(req.body))
@@ -49,9 +51,10 @@ let genId = () => {
 }
 
 
-const port = 3001
+const port = 3001 || process.env.PORT
 app.get("/api/persons", (req, res) => {
     res.send(notes)
+
 
 })
 
