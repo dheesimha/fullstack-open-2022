@@ -3,6 +3,28 @@ import { useState, useEffect } from "react";
 import Contact from "./components/Contact";
 import phone from "./services/phone";
 
+let ErrorComponent = ({ message }) => {
+  let addError =
+  {
+    color: 'red',
+    background: 'lightgrey',
+    fontsize: '20px',
+    borderStyle: 'solid',
+    borderRadius: '5px',
+    padding: '10px',
+    marginBottom: '10px'
+  }
+
+  if (message === null) return;
+
+  else {
+    if (message)
+      return (
+        <div style={addError}>{message}</div>
+      )
+  }
+}
+
 let SuccessComponent = ({ message }) => {
   let addSuccess = {
     color: "green",
@@ -44,18 +66,26 @@ const App = () => {
   const [search, setSearch] = useState("");
   const [successMsg, setSuccessMsg] = useState(null);
   const [delMsg, setDelMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null)
 
   let deleteContact = (id, name) => {
     let val = window.confirm("Delete " + name);
     if (val) {
       return axios
-        .delete(`https://dhee-fs-backend.herokuapp.com/api/persons/${id}`)
-        .then(setPersons(persons.filter((person) => person.id !== id)))
-        .catch((err) => {
-          setDelMsg(name);
+        .delete(`api/persons/${id}`)
+        .then(setPersons(persons.filter((person) => person.id !== id)),
+          setDelMsg(name),
           setTimeout(() => {
             setDelMsg(null);
-          }, 4000);
+          }, 4000)
+        )
+        .catch((err) => {
+          setErrorMsg(err.response.data);
+          setDelMsg(null)
+          setTimeout(() => {
+            setErrorMsg(null)
+          }, 4000)
+
         });
     }
   };
@@ -75,10 +105,11 @@ const App = () => {
     setNumber(e.target.value);
   };
   const handleSubmit = (e) => {
+    console.log(errorMsg);
     e.preventDefault();
     let update = false;
     let duplicate = false;
-    let obj = { name: newName, number: number };
+    let obj = { name: newName, phoneNumber: number };
     let updateId;
     persons.forEach((person) => {
       if (person.name === obj.name) {
@@ -90,20 +121,32 @@ const App = () => {
 
         if (update === true && duplicate) {
           axios
-            .put(`https://dhee-fs-backend.herokuapp.com/api/persons/${updateId}`, obj)
+            .put(`/api/persons/${updateId}`, obj)
             .then((response) => {
+              console.log(response.data);
               setPersons(
                 persons.map((person) =>
-                  person.id !== updateId ? person : response.data
+                  person.id !== updateId ? person : obj
+
                 )
+
               );
             })
             .then(
               setSuccessMsg(obj.name),
               setTimeout(() => {
                 setSuccessMsg(null);
-              }, 2000)
-            );
+              }, 4000),
+              setNewName(""),
+              setNumber("")
+
+            ).catch((err) => {
+              console.log(err);
+              setSuccessMsg(null)
+              setErrorMsg(err.response.data)
+
+
+            })
 
           update = false;
         }
@@ -111,20 +154,31 @@ const App = () => {
     });
 
     if (!duplicate) {
+
       phone.addContact(obj).then((response) => {
         console.log(response.data);
-      });
-      setPersons(persons.concat(obj));
-      setNewName("");
-      setNumber("");
-      setSuccessMsg(obj.name);
-      setTimeout(() => {
-        setSuccessMsg(null);
-      }, 2000);
-    } else {
-      setNewName("");
-      setNumber("");
+      })
+        .then(setPersons(persons.concat(obj)),
+          setNewName(""),
+          setNumber(""),
+          setSuccessMsg(obj.name),
+          setTimeout(() => {
+            setSuccessMsg(null);
+          }, 2000))
+        .catch((err) => {
+          console.log(err.response);
+
+          setErrorMsg(err.response.data)
+          setSuccessMsg(null)
+
+          setTimeout(() => {
+            setErrorMsg(null)
+          }, 2000)
+        })
+
     }
+
+
   };
 
   const showVals = () => {
@@ -132,7 +186,7 @@ const App = () => {
       return persons.map((person, index) => {
         return (
           <li key={index}>
-            {person.name}:{person.number}
+            {person.name}:{person.phoneNumber}
             <button onClick={() => deleteContact(person.id, person.name)}>
               Delete Contact
             </button>
@@ -147,7 +201,7 @@ const App = () => {
       return newArr.map((person, index) => {
         return (
           <li key={index}>
-            {person.name}:{person.number}
+            {person.name}:{person.phoneNumber}
             <button onClick={() => deleteContact(person.id)}>
               Delete Contact
             </button>
@@ -162,6 +216,7 @@ const App = () => {
       <h2>Phonebook</h2>
       <SuccessComponent message={successMsg} />
       <DeleteComponent message={delMsg} />
+      <ErrorComponent message={errorMsg} />
       <div>
         filter shown with
         <Contact value={search} onChange={handleSearch} />
@@ -185,3 +240,4 @@ const App = () => {
 };
 
 export default App;
+

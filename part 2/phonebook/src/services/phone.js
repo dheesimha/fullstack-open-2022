@@ -1,5 +1,5 @@
 import axios from "axios";
-const url = "https://dhee-fs-backend.herokuapp.com/api/persons";
+const url = "/api/persons";
 
 let getContacts = () => {
   return axios.get(url);
