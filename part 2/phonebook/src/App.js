@@ -145,7 +145,6 @@ const App = () => {
               setSuccessMsg(null)
               setErrorMsg(err.response.data)
 
-
             })
 
           update = false;
@@ -162,14 +161,14 @@ const App = () => {
           setNewName(""),
           setNumber(""),
           setSuccessMsg(obj.name),
+          setErrorMsg(null),
           setTimeout(() => {
             setSuccessMsg(null);
           }, 2000))
         .catch((err) => {
           console.log(err.response);
-
-          setErrorMsg(err.response.data)
           setSuccessMsg(null)
+          setErrorMsg(err.response.data)
 
           setTimeout(() => {
             setErrorMsg(null)
