@@ -4,17 +4,7 @@ const mongoose = require("mongoose");
 const app = require("../index");
 const api = supertest(app);
 const Blog = require("../models/blog");
-
-let token = "";
-
-beforeAll(async () => {
-  const res = await api.post("/api/login").send({
-    username: "ritesh",
-    password: "ritesh",
-  });
-
-  token = res.body.token;
-});
+const bcrypt = require("bcrypt");
 
 beforeEach(async () => {
   await Blog.deleteMany({});
@@ -28,7 +18,7 @@ beforeEach(async () => {
 test("all blogs are returned", async () => {
   const response = await api.get("/api/blogs");
 
-  expect(response.body).toHaveLength(helper.blogItems.length);
+  expect(response.body.length).toHaveLength(helper.blogItems.length);
 });
 
 test("An entry has id property", async () => {
@@ -39,62 +29,82 @@ test("An entry has id property", async () => {
   expect(content.id).toBeDefined();
 });
 
-test("a valid blog can be added", async () => {
-  const newBlog = {
-    title: "Blog 12",
-    author: "Dheemath33",
-    url: "blog.com/dheemanth",
-    likes: 10,
-    user: "62f73793efab8d5964a799b7",
-  };
+describe("addition of a blog", () => {
+  let token;
 
-  await api
-    .post("/api/blogs")
-    .send(newBlog)
-    .set("Authorization", `Bearer ${token}`)
-    .expect(201)
-    .expect("Content-Type", /application\/json/);
+  beforeEach(async () => {
+    await User.deleteMany({});
+    const passwordHash = await bcrypt.hash("testing", 10);
+    const user = new User({ username: "testing", passwordHash });
 
-  const blogList = await helper.blogsInDb();
+    await user.save();
 
-  let particularBlog = blogList.filter((blog) => blog.title === newBlog.title);
+    const response = await api
+      .post("/api/login")
+      .send({ username: "testing", password: "testing" });
 
-  expect(particularBlog[0].likes).toEqual(newBlog.likes);
+    token = response.body.token;
+  });
+  test("a valid blog can be added", async () => {
+    const newBlog = {
+      title: "Blog 12",
+      author: "Dheemath33",
+      url: "blog.com/dheemanth",
+      likes: 10,
+      user: "62f73793efab8d5964a799b7",
+    };
 
-  expect(blogList).toHaveLength(helper.blogItems.length + 1);
-});
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .set({ Authorization: `Bearer ${token}` })
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
 
-test("a valid blog can be added with zero likes", async () => {
-  const newBlog = {
-    title: "Blog 12",
-    author: "Dheemath33",
-    url: "blog.com/dheemanth",
-    user: "62f73793efab8d5964a799b7",
-  };
+    const blogList = await helper.blogsInDb();
 
-  await api
-    .post("/api/blogs")
-    .send(newBlog)
-    .expect(201)
-    .expect("Content-Type", /application\/json/);
+    let particularBlog = blogList.filter(
+      (blog) => blog.title === newBlog.title
+    );
 
-  const blogList = await helper.blogsInDb();
+    expect(particularBlog[0].likes).toEqual(newBlog.likes);
 
-  let particularBlog = await blogList.filter(
-    (blog) => blog.title === newBlog.title
-  );
+    expect(blogList).toHaveLength(helper.blogItems.length + 1);
+  });
 
-  expect(particularBlog[0].likes).toEqual(0);
+  test("a valid blog can be added with zero likes", async () => {
+    const newBlog = {
+      title: "Blog 12",
+      author: "Dheemath33",
+      url: "blog.com/dheemanth",
+      user: "62f73793efab8d5964a799b7",
+    };
 
-  expect(blogList).toHaveLength(helper.blogItems.length + 1);
-});
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .set("Authorization", "Bearer ${token}")
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
 
-test("a blog with no title and url returns 400 error", async () => {
-  let item = {
-    likes: 10,
-  };
+    const blogList = await helper.blogsInDb();
 
-  await api.post("/api/blogs").send(item).expect(400);
+    let particularBlog = await blogList.filter(
+      (blog) => blog.title === newBlog.title
+    );
+
+    expect(particularBlog[0].likes).toEqual(0);
+
+    expect(blogList).toHaveLength(helper.blogItems.length + 1);
+  });
+
+  test("a blog with no title and url returns 400 error", async () => {
+    let item = {
+      likes: 10,
+    };
+
+    await api.post("/api/blogs").send(item).expect(400);
+  });
 });
 
 describe("Deletion of a blog", () => {
