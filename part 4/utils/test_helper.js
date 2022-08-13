@@ -15,6 +15,25 @@ const blogItems = [
   },
 ];
 
+const users = [
+  {
+    username: "dhee",
+    name: "dheemanth",
+    password: "password",
+  },
+
+  {
+    username: "dhee2",
+    name: "dheemanth",
+    password: "password",
+  },
+  {
+    username: "dhee3",
+    name: "dheemanth",
+    password: "password",
+  },
+];
+
 const blogsInDb = async () => {
   const blogs = await Blog.find({});
   return blogs.map((element) => element.toJSON());
@@ -23,4 +42,5 @@ const blogsInDb = async () => {
 module.exports = {
   blogItems,
   blogsInDb,
+  users,
 };

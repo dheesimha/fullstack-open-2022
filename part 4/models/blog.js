@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const config = require("../utils/config");
-
 const blogSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -10,6 +8,10 @@ const blogSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   url: {
     type: String,
     required: true,
@@ -18,13 +20,6 @@ const blogSchema = new mongoose.Schema({
 });
 
 const Blog = mongoose.model("Blog", blogSchema);
-
-mongoose
-  .connect(config.MONGO_URI)
-  .then(console.log("Connected to DB"))
-  .catch((err) => {
-    console.error(err);
-  });
 
 blogSchema.set("toJSON", {
   transform: (document, returnedObject) => {

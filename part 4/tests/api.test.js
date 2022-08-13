@@ -5,6 +5,17 @@ const app = require("../index");
 const api = supertest(app);
 const Blog = require("../models/blog");
 
+let token = "";
+
+beforeAll(async () => {
+  const res = await api.post("/api/login").send({
+    username: "ritesh",
+    password: "ritesh",
+  });
+
+  token = res.body.token;
+});
+
 beforeEach(async () => {
   await Blog.deleteMany({});
 
@@ -34,11 +45,13 @@ test("a valid blog can be added", async () => {
     author: "Dheemath33",
     url: "blog.com/dheemanth",
     likes: 10,
+    user: "62f73793efab8d5964a799b7",
   };
 
   await api
     .post("/api/blogs")
     .send(newBlog)
+    .set("Authorization", `Bearer ${token}`)
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
@@ -56,6 +69,7 @@ test("a valid blog can be added with zero likes", async () => {
     title: "Blog 12",
     author: "Dheemath33",
     url: "blog.com/dheemanth",
+    user: "62f73793efab8d5964a799b7",
   };
 
   await api
